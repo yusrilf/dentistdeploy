@@ -149,20 +149,55 @@ export async function getBooking(id) {
 
 export async function createBooking(data) {
   const pool = getPool()
+  
+  // Validasi field wajib
+  if (!data.patient) {
+    throw new Error('Field patient wajib diisi')
+  }
+  if (!data.phone) {
+    throw new Error('Field phone wajib diisi')
+  }
+  if (!data.service) {
+    throw new Error('Field service wajib diisi')
+  }
+  if (!data.bookingDateTime) {
+    throw new Error('Field bookingDateTime wajib diisi')
+  }
+
   const sql = `INSERT INTO bookings (patient, gender, nik, relation, familyHead, address, birthPlace, dob, maritalStatus, job, education, phone, service, doctor_id, bookingDateTime, createdAt, status)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  
   const createdAt = data.createdAt ? new Date(data.createdAt) : new Date()
   const bookingDateTime = data.bookingDateTime ? new Date(data.bookingDateTime) : new Date()
   const dob = data.dob ? new Date(data.dob) : null
+  
   const params = [
-    data.patient, data.gender, data.nik, data.relation, data.familyHead, data.address, data.birthPlace,
+    data.patient,
+    data.gender || 'Laki-laki', // Default gender
+    data.nik || null,
+    data.relation || null,
+    data.familyHead || null,
+    data.address || null,
+    data.birthPlace || null,
     dob ? dob.toISOString().slice(0, 10) : null,
-    data.maritalStatus, data.job, data.education, data.phone, data.service,
+    data.maritalStatus || 'Belum Menikah', // Default marital status
+    data.job || null,
+    data.education || null,
+    data.phone,
+    data.service,
     data.doctor_id || null,
-    formatDateTime(bookingDateTime), formatDateTime(createdAt), data.status || 'pending'
+    formatDateTime(bookingDateTime),
+    formatDateTime(createdAt),
+    data.status || 'pending'
   ]
-  const [res] = await pool.query(sql, params)
-  return await getBooking(res.insertId)
+  
+  try {
+    const [res] = await pool.query(sql, params)
+    return await getBooking(res.insertId)
+  } catch (error) {
+    console.error('Error creating booking:', error)
+    throw new Error('Gagal membuat booking: ' + error.message)
+  }
 }
 
 export async function updateBookingDb(id, changes) {

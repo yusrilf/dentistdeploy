@@ -42,11 +42,12 @@ async function start() {
 
     app.get('/health', (req, res) => res.json({ ok: true }));
 
-    app.use('/auth', authRouter);
-    app.use('/bookings', bookingsRouter);
-    app.use('/calendar', calendarRouter);
-    app.use('/services', servicesRouter);
-    app.use('/doctors', doctorsRouter);
+    // Mount all routes under /api prefix only
+    app.use('/api/auth', authRouter);
+    app.use('/api/bookings', bookingsRouter);
+    app.use('/api/calendar', calendarRouter);
+    app.use('/api/services', servicesRouter);
+    app.use('/api/doctors', doctorsRouter);
 
     const port = process.env.PORT || 3001;
     app.listen(port, () => {
